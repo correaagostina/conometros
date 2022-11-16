@@ -4,7 +4,7 @@
 
 //MAC Address of receivers
 uint8_t broadcastAddress1[] = {0x40,0x91,0x51,0x4D,0xD8,0xDB};
-uint8_t broadcastAddress2[] = {0x40,0x91,0x51,0x4D,0x6C,0xE9};
+uint8_t broadcastAddress2[] = {0x40,0x91,0x51,0x4D,0xD4,0xE4};
 String success;
 bool touch = false;
 time_t t;
@@ -12,7 +12,7 @@ int tiempo;
 
 //Configure to touch
 const int ain=A0;
-const int LED=2;
+const int LED=4;
 int inputVal=0;
 
 float getDistance(){
@@ -31,6 +31,7 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus){
   Serial.printf("Last packet send status: ");
   if(sendStatus == 0){
     Serial.println("Delivery success");
+    
     }
     else{
       Serial.println("Delivery fail");
@@ -39,29 +40,21 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus){
 
 //Callback when data is received
 void OnDataRecv(uint8_t* mac, uint8_t *incomingData, uint8_t len){
-  if(touch){
-    //tiempo = t - now();
-    touch = false;
-    //Serial.println("TIEMPO TRANSCURRIDO: ", tiempo);
-  }else{
-    //t = now();
-    }
-  
   Serial.println("Message received: ");
   Serial.println(incomingData[0]);
-  //received = true;
-//  esp_now_send(0, STR, 10);
+  digitalWrite(LED, HIGH);
   }
 
 void setup() {
   // put your setup code here, to run once:
   //Wifi connection
   Serial.begin(9600);
-  Serial.print("Llega");
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
   //Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
   Serial.println("Mac address: "+WiFi.macAddress());
-  /*float distance = */getDistance();
+  ///*float distance = */getDistance();
   WiFi.disconnect();
 
   //Setting pins to touch
@@ -99,10 +92,13 @@ void loop() {
     Serial.println("TOCAAAAA");
     esp_now_send(0, STR, 10);
     //esp_now_send(broadcastAddress2, STR, 10);
-    delay(1000);
+    digitalWrite(LED, HIGH);
+    delay(2000);
+    digitalWrite(LED, LOW);
     }
-    Serial.println("Mac address: "+WiFi.macAddress());
+    //Serial.println("Mac address: "+WiFi.macAddress());
     //for serial monitor
+    digitalWrite(LED, LOW);
     delay(15);
   
 }
