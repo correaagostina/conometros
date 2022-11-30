@@ -2,6 +2,9 @@
 #include <espnow.h>
 #include <Time.h>
 
+const char* ssid = "PruebaAgos";
+const char* password = "password";
+
 //MAC Address of receivers
 uint8_t broadcastAddress1[] = {0x40,0x91,0x51,0x4D,0xD8,0xDB};
 uint8_t broadcastAddress2[] = {0x40,0x91,0x51,0x4D,0xD4,0xE4};
@@ -16,15 +19,21 @@ const int LED=4;
 int inputVal=0;
 
 float getDistance(){
-  Serial.println(WiFi.RSSI());
-  int rss = WiFi.RSSI();
-  float exponente =  (rss+90)/(-20.0);
-  Serial.println(exponente);
-  float distance = pow(10,exponente);    //RSSI(dBm) = -10nlog10(d) + A    PAra d0 el RSSI = -53
-  Serial.println("Distance:\t");
-  Serial.println(distance,1);
-  delay(5000);
+  int suma = 0;
+  for (int i = 0; i < 200;i++){
+    Serial.println(WiFi.RSSI());
+    int rss = WiFi.RSSI();
+    float exponente =  (rss+90)/(-20.0);
+    //Serial.println(exponente);
+    float distance = pow(10,exponente);    //RSSI(dBm) = -10nlog10(d) + A    PAra d0 el RSSI = -53
+    //Serial.println("Distance:\t");
+    //Serial.println(distance,1);
+    suma = suma + distance;
+    //delay(5000); 
   }
+  Serial.print("Distance:");  
+  Serial.println(suma/200);
+}
 
 //Callback when data is sent
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus){
@@ -53,8 +62,29 @@ void setup() {
   digitalWrite(LED, LOW);
   //Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando a:\t");
+  Serial.println(ssid); 
   Serial.println("Mac address: "+WiFi.macAddress());
-  ///*float distance = */getDistance();
+
+  Serial.print("Conectado a:\t");
+  Serial.println(WiFi.SSID()); 
+
+  //getDistance();
+  int suma = 0;
+  for (int i = 0; i < 200;i++){
+    Serial.println(WiFi.RSSI());
+    int rss = WiFi.RSSI();
+    float exponente =  (rss+90)/(-20.0);
+    //Serial.println(exponente);
+    float distance = pow(10,exponente);    //RSSI(dBm) = -10nlog10(d) + A    PAra d0 el RSSI = -53
+    //Serial.println("Distance:\t");
+    //Serial.println(distance,1);
+    suma = suma + distance;
+    //delay(5000); 
+  }
+  Serial.print("Distance:");  
+  Serial.println(suma/200);
   WiFi.disconnect();
 
   //Setting pins to touch
@@ -85,7 +115,7 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   //Send message via ESP-NOW
-   uint8_t STR[] = "HELLO";
+   /*uint8_t STR[] = "HELLO";
    inputVal=analogRead(ain);
    if(inputVal>20)
     {
@@ -99,6 +129,6 @@ void loop() {
     //Serial.println("Mac address: "+WiFi.macAddress());
     //for serial monitor
     digitalWrite(LED, LOW);
-    delay(15);
+    delay(15);*/
   
 }

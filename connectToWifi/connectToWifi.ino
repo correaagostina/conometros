@@ -1,18 +1,22 @@
 #include <ESP8266WiFi.h>
 
 // Sustituir con datos de vuestra red
-const char* ssid     = "PruebaAgos";
-const char* password = "password";
+const char *ssid_AP = "ESP8266_AP1";
+const char *password_AP = "12345678";
+const char *ssid_STA = "mi_ssid_local";
+const char *password_STA = "????????";
 
 void setup()
 {
   Serial.begin(9600);
   delay(10);
-  
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  Serial.print("Conectando a:\t");
-  Serial.println(ssid); 
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.softAP(ssid_AP, password_AP);
+  WiFi.begin(ssid_STA, password_STA);
+  while (WiFi.status() != WL_CONNECTED) {
+  delay(500);
+  Serial.print(".");
+}  
 
   // Esperar a que nos conectemos
   while (WiFi.status() != WL_CONNECTED) 
