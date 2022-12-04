@@ -6,34 +6,21 @@ const char* ssid = "PruebaAgos";
 const char* password = "password";
 
 //MAC Address of receivers
-uint8_t broadcastAddress1[] = {0x40,0x91,0x51,0x4D,0xD8,0xDB};
-uint8_t broadcastAddress2[] = {0x40,0x91,0x51,0x4D,0xD4,0xE4};
+//uint8_t broadcastAddress1[] = {0x40,0x91,0x51,0x4D,0xD8,0xDB};
+uint8_t broadcastAddress3[] = {0x40,0x91,0x51,0x4D,0xD4,0xE4};
+uint8_t broadcastAddress1[] = {0x5C,0xCF,0x7F,0x5A,0x4F,0x6C};
 String success;
 bool touch = false;
 time_t t;
 int tiempo;
+bool inicio = true;
+bool ready = false;
+float distance = 0;
 
 //Configure to touch
 const int ain=A0;
 const int LED=4;
 int inputVal=0;
-
-float getDistance(){
-  int suma = 0;
-  for (int i = 0; i < 200;i++){
-    Serial.println(WiFi.RSSI());
-    int rss = WiFi.RSSI();
-    float exponente =  (rss+90)/(-20.0);
-    //Serial.println(exponente);
-    float distance = pow(10,exponente);    //RSSI(dBm) = -10nlog10(d) + A    PAra d0 el RSSI = -53
-    //Serial.println("Distance:\t");
-    //Serial.println(distance,1);
-    suma = suma + distance;
-    //delay(5000); 
-  }
-  Serial.print("Distance:");  
-  Serial.println(suma/200);
-}
 
 //Callback when data is sent
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus){
@@ -52,6 +39,14 @@ void OnDataRecv(uint8_t* mac, uint8_t *incomingData, uint8_t len){
   Serial.println("Message received: ");
   Serial.println(incomingData[0]);
   digitalWrite(LED, HIGH);
+
+  //On ready message
+  if(incomingData == "READY"){
+   if((!ready)&&(cantReady==3)){
+      ready = true;
+    }    
+  }
+ 
   }
 
 void setup() {
@@ -70,21 +65,6 @@ void setup() {
   Serial.print("Conectado a:\t");
   Serial.println(WiFi.SSID()); 
 
-  //getDistance();
-  int suma = 0;
-  for (int i = 0; i < 200;i++){
-    Serial.println(WiFi.RSSI());
-    int rss = WiFi.RSSI();
-    float exponente =  (rss+90)/(-20.0);
-    //Serial.println(exponente);
-    float distance = pow(10,exponente);    //RSSI(dBm) = -10nlog10(d) + A    PAra d0 el RSSI = -53
-    //Serial.println("Distance:\t");
-    //Serial.println(distance,1);
-    suma = suma + distance;
-    //delay(5000); 
-  }
-  Serial.print("Distance:");  
-  Serial.println(suma/200);
   WiFi.disconnect();
 
   //Setting pins to touch
@@ -105,7 +85,8 @@ void setup() {
 
   //Register peer
   esp_now_add_peer(broadcastAddress1, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
-  esp_now_add_peer(broadcastAddress2, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
+  //esp_now_add_peer(broadcastAddress2, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
+  esp_now_add_peer(broadcastAddress3, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
 
   //Register for a callback function that will be called when data is received
   esp_now_register_recv_cb(OnDataRecv);
@@ -114,21 +95,46 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  //Send message via ESP-NOW
-   /*uint8_t STR[] = "HELLO";
-   inputVal=analogRead(ain);
-   if(inputVal>20)
-    {
-    Serial.println("TOCAAAAA");
-    esp_now_send(0, STR, 10);
-    //esp_now_send(broadcastAddress2, STR, 10);
-    digitalWrite(LED, HIGH);
-    delay(2000);
-    digitalWrite(LED, LOW);
+  if (inicio){
+    float suma = 0;
+    for(int i=0; i< 200; i++){
+      int rss = WiFi.RSSI();
+      float exponente =  (rss+42)/(-20.0);
+      //Serial.println(exponente);
+      distance = pow(10,exponente);    //RSSI(dBm) = -10nlog10(d) + A    PAra d0 el RSSI = -53
+      suma += distance;
+
     }
-    //Serial.println("Mac address: "+WiFi.macAddress());
-    //for serial monitor
-    digitalWrite(LED, LOW);
-    delay(15);*/
+    distance = suma/200.0;
+    Serial.println("Distance:\t");
+    Serial.println(distance,3);
+    delay(5000);
+    inicio = false;
+    cantReady++;
+    esp_now_send(0, "READY", 10);
+  }else{
+
+    if(ready){
+      //Send message via ESP-NOW
+      uint8_t STR[] = "HELLO";
+      /*inputVal=analogRead(ain);
+      if(inputVal>20)
+      {
+      Serial.println("TOCAAAAA");*/
+      esp_now_send(0, STR, 10);
+      //esp_now_send(broadcastAddress2, STR, 10);
+      digitalWrite(LED, HIGH);
+      delay(2000);
+      digitalWrite(LED, LOW);
+      //}
+      //Serial.println("Mac address: "+WiFi.macAddress());
+      //for serial monitor
+      digitalWrite(LED, LOW);
+      delay(15);
+    }
+    
+  }
+
+  
   
 }
