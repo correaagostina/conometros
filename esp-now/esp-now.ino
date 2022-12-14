@@ -122,11 +122,12 @@ void loop() {
   
   //Send message via ESP-NOW
    uint8_t STR[] = "MENSAJE";
-   
+   digitalWrite(LED, LOW);
    inputVal=analogRead(ain);
    
    if(inputVal>15)
     {
+          digitalWrite(LED, HIGH);
           Serial.println("Detecta toque.");
           touch = true;
           esp_now_send(0, STR, 10);
@@ -134,6 +135,6 @@ void loop() {
 
     
     }
-    delay(100);
+    delay(50);
   
 }
