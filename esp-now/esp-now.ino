@@ -11,14 +11,10 @@ const char* ssid = "PruebaAgos";
 const char* password = "password";
 
 int miMac = 108; 
-ofstream myfile;
 //MAC Address of receivers
-//uint8_t broadcastAddress1[] = {0x40,0x91,0x51,0x4D,0xD8,0xDB};
+uint8_t broadcastAddress3[] = {0x5C,0xCF,0x7F,0x5A,0x4F,0x6C};
+uint8_t broadcastAddress1[] = {0x84,0xf3,0xeb,0xb1,0xc4,0x6e};
 //uint8_t broadcastAddress3[] = {0x40,0x91,0x51,0x4D,0xD4,0xE4};
-//uint8_t broadcastAddress3[] = {0x5C,0xCF,0x7F,0x5A,0x4F,0x6C};
-//uint8_t broadcastAddress1[] = {0x40,0x91,0x51,0x4D,0xD8,0xDB};
-uint8_t broadcastAddress3[] = {0x40,0x91,0x51,0x4D,0xD4,0xE4};
-//uint8_t broadcastAddress3[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
 String success;
 bool touch = false;
@@ -54,15 +50,18 @@ void OnDataRecv(uint8_t* mac, uint8_t *incomingData, uint8_t len){
   Serial.println("Message received: ");
   //Serial.println(mac[12] + mac[13]);
   digitalWrite(LED, HIGH);
-  int i=0;
-  for(int i=0; i<6;i++){
-    Serial.print(mac[i],HEX);    
-  }
 
   //if(miMac!=mac[5]){
     if(touch){
       tiempo = millis() - lastMillis;
-      Serial.println("Tiempo:");    
+      Serial.print("Tiempo desde ESP : ");  
+      for(int i=0; i<6;i++){
+        Serial.print(mac[i],HEX); 
+        Serial.print(" :");   
+      }
+      Serial.print(" hasta ESP : "); 
+      Serial.print(WiFi.macAddress());
+      Serial.println(); 
       Serial.println(tiempo/1000,3);    
       touch = false; 
       tiempo = 0;
@@ -92,16 +91,6 @@ void setup() {
   Serial.println(WiFi.SSID()); 
   WiFi.disconnect();
 
-  myfile.open("example.txt");
- if (myfile.is_open())
-  {
-    myfile << "This is a line.\n";
-    myfile << "This is another line.\n";
-    myfile.close();
-  }
-  else {
-    Serial.println('Error');
-  }
   //Setting pins to touch
   pinMode(LED,OUTPUT);
   
@@ -120,7 +109,7 @@ void setup() {
 
   //Register peer
   //esp_now_add_peer(broadcastAddress1, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
-  //esp_now_add_peer(broadcastAddress2, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
+  esp_now_add_peer(broadcastAddress1, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
   esp_now_add_peer(broadcastAddress3, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
 
   //Register for a callback function that will be called when data is received
@@ -132,20 +121,19 @@ void loop() {
 
   
   //Send message via ESP-NOW
-   uint8_t STR[] = "HOLA";
+   uint8_t STR[] = "MENSAJE";
    
    inputVal=analogRead(ain);
    
-   if(inputVal>20)
+   if(inputVal>15)
     {
-      if(entra){
-          Serial.println("TOCAAAAA");
+          Serial.println("Detecta toque.");
           touch = true;
           esp_now_send(0, STR, 10);
           entra = false;        
-      }
+
     
     }
-    delay(15);
+    delay(100);
   
 }
